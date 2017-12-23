@@ -32,7 +32,6 @@ from torchvision import transforms
 from PIL import Image
 from config import transforms_master
 
-
 class ImageDataset(data.Dataset):
     def __init__(self, X_data, include_target, X_transform = transforms.ToTensor()):
 
@@ -41,7 +40,7 @@ class ImageDataset(data.Dataset):
         self.X_transform = X_transform
 
     def __getitem__(self, index):
-#        np.random.seed() #see comment
+#        np.random.seed() 
         #get 2 channels of our image
         img1 = self.X_data.iloc[index]['band_1']
         img2 = self.X_data.iloc[index]['band_2']
@@ -49,17 +48,15 @@ class ImageDataset(data.Dataset):
 
         img = np.stack([img1, img2, img3], axis = 2)
         img = img.astype(np.float32)
-#        img = transforms_master.to_tensor(img)
-#        img1 = transforms_master.to_pil_image(img1)
-#        img2 = transforms_master.to_pil_image(img2)
-#        img3 = transforms_master.to_pil_image(img3)
-#        img = PIL.stack([img1, img2, img3], axis = 2)
+
 
         #get angle and img_name
         angle = self.X_data.iloc[index]['inc_angle']
         img_id = self.X_data.iloc[index]['id']
         
         #perform augmentation
+#        img = self.random_horizaontal_flip(img)
+#        img = self.resize(img)
         if self.X_transform:
             img = self.X_transform(img)#, **{'u' : self.u})
             
@@ -81,14 +78,30 @@ class ImageDataset(data.Dataset):
     def __len__(self):
         return len(self.X_data)
         
-#your custom aug function for numpy image:
-#seems like all flip augmentations may decrease performance
-def random_vertical_flip(img, u=0.5):
-    if np.random.random() < u:
-        img = cv2.flip(img, 0)
-
-    return img
-
+    #custom aug function for numpy image:
+    # horizontal flips, shifts and scale. https://www.jianshu.com/p/b5c29aeaedc7
+    #https://github.com/ncullen93/torchsample/tree/master/torchsample/transforms
+    #http://augmentor.readthedocs.io/en/master/
+#    @staticmethod
+#    def random_vertical_flip(img, u = 0.5):
+#        if np.random.random() < u:
+#            img = cv2.flip(img, 0)
+#        return img
+#    @staticmethod
+#    def random_horizaontal_flip(img, u = 0.5):
+#        if np.random.random() < u:
+#            img = cv2.flip(img, 1)
+#        return img
+#    @staticmethod
+#    def resize(img, size = 224):
+#        return cv2.resize(img, (size, size))
+#    @staticmethod
+#    def rotate(img, deg = ):
+#        return 
+#    @staticmethod
+#    def shift(img, dist = ):
+#        return
+    
 
 if __name__ == "__main__":
     

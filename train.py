@@ -125,7 +125,7 @@ def run():
                 num_workers=INPUT_WORKERS, pin_memory=use_gpu)
         
     val_loader = torch.utils.data.DataLoader(
-            jd.ImageDataset(VALIDATION_ROOT, include_target = True, X_transform = data_transforms(train_transform,input_size, train_scale, test_scale)),
+            jd.ImageDataset(VALIDATION_ROOT, include_target = True, X_transform = data_transforms(val_transform,input_size, train_scale, test_scale)),
             batch_size=BATCH_SIZE, shuffle=False,
             num_workers=INPUT_WORKERS, pin_memory=use_gpu)
 
@@ -212,13 +212,14 @@ def run():
                         'best_prec3': best_prec3,
                         'loss1': loss1
                         },  epoch+1)
-            save_checkpoint({
+            if is_best:
+                save_checkpoint({
                         'epoch': epoch + 1,
                         'arch': arch,
                         'state_dict': model.state_dict(),
                         'best_prec3': best_prec3,
                         'loss1': loss1
-                        }, is_best)
+                        },  is_best)
 #            if use_epoch_decay:
 #                if is_best:
 #                    save_checkpoint({
@@ -235,24 +236,15 @@ def run():
 #                        best_prec3 = my_check['best_prec3']
 #                        best_loss1 = my_check['loss1']
 #            else:
-#                if is_best:
-#                    save_checkpoint({
-#                        'epoch': epoch + 1,
-#                        'arch': arch,
-#                        'state_dict': model.state_dict(),
-#                        'best_prec3': best_prec3,
-#                        'loss1': loss1
-#                        }, is_best)
-#                    best_prec3 = prec3
-#                else:
-#                    if lr<=lr_min: #lr特别小的时候别来回回滚checkpoint了
-#                        best_prec3 = prec3
-#                    else:
-#                        my_check = torch.load(best_check)
-#                        model.load_state_dict(my_check['state_dict'])
-#                        best_loss1 = my_check['loss1']
-#                        best_prec3 = my_check['best_prec3']
-#                        adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay) 
+            if not is_best:
+                if lr<=lr_min: #lr特别小的时候别来回回滚checkpoint了
+                    best_loss1 = loss1 
+                else:
+                    my_check = torch.load(best_check)
+                    model.load_state_dict(my_check['state_dict'])
+                    best_loss1 = my_check['loss1']
+                    best_prec3 = my_check['best_prec3']
+                    adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay) 
 
 
 def _each_epoch(mode, loader, model, criterion, optimizer=None, epoch=None):

@@ -4,5 +4,6 @@ License file had been added if available.
 
 The code includes some redundant modules, but can be easily exploited in the future.
 
-The code was further developed for jd pig recognition by YanWang2014, however, only part of the modules are reused here.
+The code was further developed for jd pig recognition by YanWang2014 (https://github.com/YanWang2014/pig), however, only part of the modules are reused here.
+
 Now the code is actively developped for Statoil/C-CORE Iceberg Classifier Challenge.

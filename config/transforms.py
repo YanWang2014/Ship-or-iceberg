@@ -1,6 +1,7 @@
 # https://github.com/pytorch/vision/blob/master/torchvision/transforms.py
 # https://github.com/ncullen93/torchsample/tree/master/torchsample/transforms
 # https://keras.io/preprocessing/image/
+
 '''
 https://zhuanlan.zhihu.com/p/29513760
 
@@ -24,11 +25,14 @@ import random
 from PIL import Image
 from .transforms_master import ColorJitter, scale, ten_crop, to_tensor, pad, RandomVerticalFlip
 import collections
+import torchsample
+import cv2
 
 #input_size = 224 
 #train_scale = 256 
 #test_scale = 256
-normalize = transforms.Normalize(mean=[-0.0810, -0.1032, -0.0921], std=[ 0.020395, 0.013316, 0.014961]) # rerange them to [-1, +1]
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+normalize_ship = transforms.Normalize(mean=[-0.0810, -0.1032, -0.0921], std=[ 0.020395, 0.013316, 0.014961]) # rerange them to [-1, +1]
 
 def my_transform(img, input_size, train_scale, test_scale):
     img = scale(img, test_scale)
@@ -119,8 +123,20 @@ class Pad2Set(object):
         self.padding2 = ((self.padding-w)//2, (self.padding-h)//2, self.padding-w-(self.padding-w)//2, self.padding-h-(self.padding-h)//2)
         return pad(img, self.padding2, self.fill)
 
+class numpy_Resize(object):
+    def __init__(self, size):
+        self.size = size
+    def __call__(self, img):
+        return self.numpy_resize(img)
+    
+    def numpy_resize(self, img):
+        return cv2.resize(img, (self.size, self.size))
+    
 composed_data_transforms = {}
 def data_transforms(phase, input_size = 224, train_scale = 256, test_scale = 256):
+#    if phase == 'train2_ship':
+#        print('Transforms are performed on numpy manually in json_dataset.py')
+#    else:
     print('input_size %d, train_scale %d, test_scale %d' %(input_size,train_scale,test_scale))
     
     composed_data_transforms = {
@@ -165,9 +181,17 @@ def data_transforms(phase, input_size = 224, train_scale = 256, test_scale = 256
         normalize
     ]),
     
-    'train2_ship': transforms.Compose([
+    'train_ship': transforms.Compose([
+        numpy_Resize(input_size),
         transforms.ToTensor(), 
-        normalize
+#        torchsample.transforms.RandomAffine(rotation_range=30, translation_range=0.2, shear_range=None, zoom_range=(0.8,1.2)),
+        torchsample.transforms.RandomFlip(h=True, v=False, p=0.5),
+        normalize_ship
     ]),
+    'val_ship': transforms.Compose([
+        numpy_Resize(input_size),
+        transforms.ToTensor(), 
+        normalize_ship
+    ])
     }
     return composed_data_transforms[phase]

@@ -2,57 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
- train
- *Epoch:[0] Prec@1 60.723 Prec@3 100.000 Loss 0.6715
- *Epoch:[0] Prec@1 80.424 Prec@3 100.000 Loss 0.4315
- *Epoch:[1] Prec@1 78.678 Prec@3 100.000 Loss 0.4345
- *Epoch:[1] Prec@1 90.337 Prec@3 100.000 Loss 0.3013
- *Epoch:[2] Prec@1 86.845 Prec@3 100.000 Loss 0.3401
- *Epoch:[2] Prec@1 95.262 Prec@3 100.000 Loss 0.2190
- *Epoch:[3] Prec@1 91.272 Prec@3 100.000 Loss 0.2584
- *Epoch:[3] Prec@1 97.506 Prec@3 100.000 Loss 0.1684
- *Epoch:[4] Prec@1 93.766 Prec@3 100.000 Loss 0.2096
- *Epoch:[4] Prec@1 98.878 Prec@3 100.000 Loss 0.1271
- *Epoch:[5] Prec@1 96.820 Prec@3 100.000 Loss 0.1587
- *Epoch:[5] Prec@1 99.626 Prec@3 100.000 Loss 0.0855
- *Epoch:[6] Prec@1 97.195 Prec@3 100.000 Loss 0.1282
- *Epoch:[6] Prec@1 99.813 Prec@3 100.000 Loss 0.0640
- *Epoch:[7] Prec@1 98.566 Prec@3 100.000 Loss 0.1039
- *Epoch:[7] Prec@1 99.938 Prec@3 100.000 Loss 0.0444
- 
- 不要eval: 啥玩意（因为BN）
-checkpoint/resnet18_imagenet_1.pth.tar
- * Prec@1 74.438903 Prec@3 100.000000 Loss@1 0.488571
-checkpoint/resnet18_imagenet_3.pth.tar
- * Prec@1 89.463840 Prec@3 100.000000 Loss@1 0.299187
-checkpoint/resnet18_imagenet_5.pth.tar
- * Prec@1 94.201995 Prec@3 100.000000 Loss@1 0.208598
-checkpoint/resnet18_imagenet_7.pth.tar
- * Prec@1 95.885287 Prec@3 100.000000 Loss@1 0.148790
-Loss@1 1.074036
-
- 要eval: 和val结果一样
- checkpoint/resnet18_imagenet_1.pth.tar
- * Prec@1 80.423940 Prec@3 100.000000 Loss@1 0.431476
-checkpoint/resnet18_imagenet_3.pth.tar
- * Prec@1 95.261845 Prec@3 100.000000 Loss@1 0.219027
-checkpoint/resnet18_imagenet_5.pth.tar
- * Prec@1 98.877805 Prec@3 100.000000 Loss@1 0.127116
-checkpoint/resnet18_imagenet_7.pth.tar
- * Prec@1 99.812968 Prec@3 100.000000 Loss@1 0.064033
-Loss@1 0.994577
-
- 要train
- checkpoint/resnet18_imagenet_1.pth.tar
- * Prec@1 74.438903 Prec@3 100.000000 Loss@1 0.488571
-checkpoint/resnet18_imagenet_3.pth.tar
- * Prec@1 89.463840 Prec@3 100.000000 Loss@1 0.299187
-checkpoint/resnet18_imagenet_5.pth.tar
- * Prec@1 94.201995 Prec@3 100.000000 Loss@1 0.208598
-checkpoint/resnet18_imagenet_7.pth.tar
- * Prec@1 95.885287 Prec@3 100.000000 Loss@1 0.148790
-Loss@1 1.074036
-
+注意BN在train和eval时表现不一样。
 '''
 
 import os
@@ -85,7 +35,7 @@ multi_checks = []
 '''
 在这里指定使用哪几个epoch的checkpoint进行平均
 '''
-for epoch_check in ['7']:   # epoch的列表，如['10', '20', 'best']
+for epoch_check in ['10']:   # epoch的列表，如['10', '20', 'best']
     multi_checks.append('checkpoint/' + checkpoint_filename + '_' + str(epoch_check)+'.pth.tar')
 
 #best_check = 'checkpoint/' + checkpoint_filename + '_best.pth.tar' 
@@ -112,9 +62,9 @@ def write_to_csv(aug_softmax, epoch_i = None): #aug_softmax[img_name_raw[item]] 
         writer = csv.writer(csvfile,dialect='excel')
         writer.writerow(["id", "is_iceberg"])
         for item in aug_softmax.keys():
-            writer.writerow([item, aug_softmax[item][1]])
+            writer.writerow([item, aug_softmax[item][1]]) #max(min(aug_softmax[item][1], 0.9), 0.1)])
 
-transformed_dataset_test = jd.ImageDataset(test_root, include_target = True, X_transform = data_transforms(train_transform,input_size, train_scale, test_scale))          
+transformed_dataset_test = jd.ImageDataset(test_root, include_target = True, X_transform = data_transforms(val_transform,input_size, train_scale, test_scale))          
 
 dataloader = {phases[0]:DataLoader(transformed_dataset_test, batch_size=batch_size,shuffle=False, num_workers=INPUT_WORKERS)
              }
