@@ -220,31 +220,23 @@ def run():
                         'best_prec3': best_prec3,
                         'loss1': loss1
                         },  is_best)
-#            if use_epoch_decay:
-#                if is_best:
-#                    save_checkpoint({
-#                        'epoch': epoch + 1,
-#                        'arch': arch,
-#                        'state_dict': model.state_dict(),
-#                        'best_prec3': best_prec3,
-#                        'loss1': loss1
-#                        }, is_best)
-#                if_adjust = adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay)
-#                if if_adjust:
-#                        my_check = torch.load(best_check)
-#                        model.load_state_dict(my_check['state_dict'])
-#                        best_prec3 = my_check['best_prec3']
-#                        best_loss1 = my_check['loss1']
-#            else:
-            if not is_best:
-                if lr<=lr_min: #lr特别小的时候别来回回滚checkpoint了
-                    best_loss1 = loss1 
-                else:
-                    my_check = torch.load(best_check)
-                    model.load_state_dict(my_check['state_dict'])
-                    best_loss1 = my_check['loss1']
-                    best_prec3 = my_check['best_prec3']
-                    adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay) 
+            if use_epoch_decay:
+                if_adjust = adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay)
+                if if_adjust:
+                        my_check = torch.load(best_check)
+                        model.load_state_dict(my_check['state_dict'])
+                        best_prec3 = my_check['best_prec3']
+                        best_loss1 = my_check['loss1']
+            else:
+                if not is_best:
+                    if lr<=lr_min: #lr特别小的时候别来回回滚checkpoint了
+                        best_loss1 = loss1 
+                    else:
+                        my_check = torch.load(best_check)
+                        model.load_state_dict(my_check['state_dict'])
+                        best_loss1 = my_check['loss1']
+                        best_prec3 = my_check['best_prec3']
+                        adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay) 
 
 
 def _each_epoch(mode, loader, model, criterion, optimizer=None, epoch=None):
@@ -338,13 +330,12 @@ def adjust_learning_rate(optimizer, epoch, if_fc, use_epoch_decay):
     global lr
 
     if use_epoch_decay:
-        if epoch in [10,20,30,40,50,60,70,80,90]:
-            lr = lr / 5.0
+        if epoch in decay_epochs:
+            lr = lr*lr_decay
             print(lr)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
             return True
-        print(lr)
         return False
     else:
         if if_fc:

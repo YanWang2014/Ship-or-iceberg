@@ -44,7 +44,7 @@ class ImageDataset(data.Dataset):
         #get 2 channels of our image
         img1 = self.X_data.iloc[index]['band_1']
         img2 = self.X_data.iloc[index]['band_2']
-        img3 = (img1 + img2) /2
+        img3 = img1
 
         img = np.stack([img1, img2, img3], axis = 2)
         img = img.astype(np.float32)

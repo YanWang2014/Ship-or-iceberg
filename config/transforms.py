@@ -27,12 +27,14 @@ from .transforms_master import ColorJitter, scale, ten_crop, to_tensor, pad, Ran
 import collections
 import torchsample
 import cv2
+import numpy as np
 
 #input_size = 224 
 #train_scale = 256 
 #test_scale = 256
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-normalize_ship = transforms.Normalize(mean=[-0.0810, -0.1032, -0.0921], std=[ 0.020395, 0.013316, 0.014961]) # rerange them to [-1, +1]
+#normalize_ship = transforms.Normalize(mean=[-0.0810, -0.1032, -0.0921], std=[ 0.020395, 0.013316, 0.014961]) # rerange them to [-1, +1]
+normalize_ship = transforms.Normalize(mean=[-0.0810, -0.1032, -0.0810], std=[ 0.020395, 0.013316, 0.020395]) # rerange them to [-1, +1]
 
 def my_transform(img, input_size, train_scale, test_scale):
     img = scale(img, test_scale)
@@ -132,6 +134,21 @@ class numpy_Resize(object):
     def numpy_resize(self, img):
         return cv2.resize(img, (self.size, self.size))
     
+
+class numpy_Shift_intensity(object):
+    def __init__(self, mul = 0.2, plus_ratio = 0.2):
+        self.mul = mul
+        self.plus_ratio = plus_ratio
+    def __call__(self, img):
+        return self.numpy_shift_intensity(img)
+    
+    def numpy_shift_intensity(self, img):
+        a = 1 + (np.random.random()*2 -1) * self.mul
+        b = (np.random.random()*2-1) * self.plus_ratio
+        img += 0.1*b
+        img *= a
+        return img
+    
 composed_data_transforms = {}
 def data_transforms(phase, input_size = 224, train_scale = 256, test_scale = 256):
 #    if phase == 'train2_ship':
@@ -182,9 +199,10 @@ def data_transforms(phase, input_size = 224, train_scale = 256, test_scale = 256
     ]),
     
     'train_ship': transforms.Compose([
+        numpy_Shift_intensity(mul = 0.5, plus_ratio = 0.5), 
         numpy_Resize(input_size),
         transforms.ToTensor(), 
-#        torchsample.transforms.RandomAffine(rotation_range=30, translation_range=0.2, shear_range=None, zoom_range=(0.8,1.2)),
+        torchsample.transforms.RandomAffine(rotation_range=None, translation_range=[0.2, 0.2], shear_range=None, zoom_range=(0.3,1)),
         torchsample.transforms.RandomFlip(h=True, v=False, p=0.5),
         normalize_ship
     ]),
