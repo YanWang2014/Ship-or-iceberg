@@ -9,6 +9,36 @@ lr
 stn
     http://blog.csdn.net/xbinworld/article/details/69049680
     http://pytorch.org/tutorials/intermediate/spatial_transformer_tutorial.html
+
+kaggle
+    EDA
+        https://www.kaggle.com/muonneutrino/exploration-transforming-images-in-python
+        https://www.kaggle.com/submarineering/submarineering-size-matters-0-75-lb
+        https://www.kaggle.com/keremt/getting-color-composites
+        https://www.kaggle.com/asindico/icebergs-and-ships-eda-and-augmentation  (PIL)
+        https://www.kaggle.com/dimitrif/other-sentinel-data （数据经过了啥处理）
+    background
+        https://www.kaggle.com/devm2024/keras-model-for-beginners-0-210-on-lb-eda-r-d （数据采集原理）
+        https://www.kaggle.com/jgroff/despeckling-synthetic-aperture-radar-sar-images (去噪)
+        https://www.kaggle.com/dimitrif/domain-knowledge
+        https://www.kaggle.com/plarmuseau/how-to-use-the-angle-imho
+    angle
+        https://www.kaggle.com/c/statoil-iceberg-classifier-challenge/discussion/46195#261600
+        https://www.kaggle.com/brassmonkey381/viewing-leak-and-machine-images
+    Pseudo-labeling
+        https://towardsdatascience.com/simple-explanation-of-semi-supervised-learning-and-pseudo-labeling-c2218e8c769b
+        https://www.kaggle.com/c/statoil-iceberg-classifier-challenge/discussion/45852
+        https://datawhatnow.com/pseudo-labeling-semi-supervised-learning/
+        https://www.analyticsvidhya.com/blog/2017/09/pseudo-labelling-semi-supervised-learning-technique/
+    ensemble
+        https://www.kaggle.com/chechir/explore-stacking-another-hi-lo-and-clip-probs
+    Best single model
+        https://www.kaggle.com/c/statoil-iceberg-classifier-challenge/discussion/45265
+        
+Best
+    https://www.kaggle.com/supersp1234/best-single-model-lb-0-1400
+    https://www.kaggle.com/golubev/attention-danger-stacking-0-1258-on-lb
+    https://www.kaggle.com/dongxu027/explore-stacking-lb-0-1463
 '''
 
 from model import load_model
@@ -123,11 +153,12 @@ def run():
                 jd.ImageDataset(TRAIN_ROOT, include_target = True, X_transform = data_transforms(train_transform,input_size, train_scale, test_scale)),
                 batch_size=BATCH_SIZE, shuffle=True,
                 num_workers=INPUT_WORKERS, pin_memory=use_gpu)
-        
-    val_loader = torch.utils.data.DataLoader(
-            jd.ImageDataset(VALIDATION_ROOT, include_target = True, X_transform = data_transforms(val_transform,input_size, train_scale, test_scale)),
-            batch_size=BATCH_SIZE, shuffle=False,
-            num_workers=INPUT_WORKERS, pin_memory=use_gpu)
+    
+    if isinstance(VALIDATION_ROOT, pd.DataFrame):
+        val_loader = torch.utils.data.DataLoader(
+                jd.ImageDataset(VALIDATION_ROOT, include_target = True, X_transform = data_transforms(val_transform,input_size, train_scale, test_scale)),
+                batch_size=BATCH_SIZE, shuffle=False,
+                num_workers=INPUT_WORKERS, pin_memory=use_gpu)
 
 
     criterion = nn.CrossEntropyLoss().cuda() if use_gpu else nn.CrossEntropyLoss()
@@ -257,15 +288,20 @@ def _each_epoch(mode, loader, model, criterion, optimizer=None, epoch=None):
         target = dict_['target']
         img_id = dict_['id']
         angle = dict_['angle']
+        the_size = dict_['size']
         data_time.update(time.time() - end)
 
         if use_gpu:
             target = target.cuda(async=True)
         input_var = torch.autograd.Variable(img, volatile=(mode != 'train'))
+        size_var = torch.autograd.Variable(the_size, volatile=(mode != 'train'))
         target_var = torch.autograd.Variable(target, volatile=(mode != 'train'))
 
         # compute output
-        output = model(input_var)
+        if arch == 'modified_resnet18':
+            output = model(input_var.float(), size_var.float())
+        else:
+            output = model(input_var)
         
         if confusions == 'Pairwise': #'Pairwise' 'Entropic'
             loss = criterion(output, target_var) + confusion_weight * confusion.PairwiseConfusion(nn.functional.softmax(output))

@@ -35,7 +35,7 @@ multi_checks = []
 '''
 在这里指定使用哪几个epoch的checkpoint进行平均
 '''
-for epoch_check in ['13', '17']:   # epoch的列表，如['10', '20', 'best']
+for epoch_check in ['45','47','49','51','53','55']:   # epoch的列表，如['10', '20', 'best']
     multi_checks.append('checkpoint/' + checkpoint_filename + '_' + str(epoch_check)+'.pth.tar')
 
 #best_check = 'checkpoint/' + checkpoint_filename + '_best.pth.tar' 
@@ -62,7 +62,7 @@ def write_to_csv(aug_softmax, epoch_i = None): #aug_softmax[img_name_raw[item]] 
         writer = csv.writer(csvfile,dialect='excel')
         writer.writerow(["id", "is_iceberg"])
         for item in aug_softmax.keys():
-            writer.writerow([item, max(min(aug_softmax[item][1], 0.99), 0.01)])
+            writer.writerow([item, max(min(aug_softmax[item][1], 0.999), 0.001)])
 
 transformed_dataset_test = jd.ImageDataset(test_root, include_target = True, X_transform = data_transforms(val_transform,input_size, train_scale, test_scale))          
 
@@ -135,16 +135,21 @@ def test_model (model, criterion):
             labels = dict_['target']
             img_name_raw = dict_['id']
             angle = dict_['angle']
+            the_size = dict_['size']
 
             # wrap them in Variable
             if use_gpu:
                 inputs = Variable(inputs.cuda())
+                size_var = Variable(the_size.cuda())
                 labels = Variable(labels.cuda())
             else:
                 inputs, labels = Variable(inputs), Variable(labels)
 
             # forward
-            outputs = model(inputs)
+            if arch == 'modified_resnet18':
+                outputs = model(inputs.float(), size_var.float())
+            else:
+                outputs = model(inputs)
             crop_softmax = nn.functional.softmax(outputs)
             temp = crop_softmax.cpu().data.numpy()
             for item in range(len(img_name_raw)):
