@@ -85,7 +85,7 @@ BATCH_SIZE = 64
 INPUT_WORKERS = 4
 epochs = 50
 use_epoch_decay = True # 可以加每次调lr时load回来最好的checkpoint
-decay_epochs = [10, 20, 30, 40]
+decay_epochs = [7, 14, 21, 28, 35]
 lr = 1e-3  #0.01  0.001
 lr_min = 1e-6
 lr_decay = 0.2
@@ -97,7 +97,7 @@ lr2_min = 0.019#0.0019 #lr2每次除以10降到lr2_min，然后lr2 = lr, lr1 = l
 slow = 1 #if_fc = True, lr1比lr2慢的倍数
 print('lr=%.8f, lr1=%.8f, lr2=%.8f, lr2_min=%.8f'% (lr,lr1,lr2,lr2_min))
 
-weight_decay = 0 #.05 #0.0005 #0.0001  0.05太大。试下0.01?
+weight_decay = 0.005 #.05 #0.0005 #0.0001  0.05太大。试下0.01?
 optim_type = 'Adam' #Adam SGD http://ruder.io/optimizing-gradient-descent/
 confusions = None#'Entropic' #'Pairwise' 'Entropic'
 confusion_weight = 0#0.1# 0.5  #for pairwise loss is 0.1N to 0.2N (where N is the number of classes), and for entropic is 0.1-0.5. https://github.com/abhimanyudubey/confusion

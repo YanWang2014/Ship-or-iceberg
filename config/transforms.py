@@ -200,14 +200,14 @@ def data_transforms(phase, input_size = 224, train_scale = 256, test_scale = 256
     
     'train_ship': transforms.Compose([
 #        numpy_Shift_intensity(mul = 0.5, plus_ratio = 0.5), 
-        numpy_Resize(input_size),
+#        numpy_Resize(input_size),
         transforms.ToTensor(), 
-#        torchsample.transforms.RandomAffine(rotation_range=30, translation_range=[0.2, 0.2], shear_range=None, zoom_range=(0.3,1)),
+#        torchsample.transforms.RandomAffine(rotation_range=10, translation_range=[0.05, 0.05], shear_range=None, zoom_range=None),
         torchsample.transforms.RandomFlip(h=True, v=True, p=0.5)
 #        normalize_ship
     ]),
     'val_ship': transforms.Compose([
-        numpy_Resize(input_size),
+#        numpy_Resize(input_size),
         transforms.ToTensor()
 #        normalize_ship
     ])
