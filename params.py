@@ -31,11 +31,10 @@ TRAIN_ROOT['s2'] = TRAIN_ROOT.iloc[:,6].apply(size)
 TRAIN_ROOT['band_1'] = TRAIN_ROOT['band_1'].apply(lambda x: np.array(x).reshape(75, 75))
 TRAIN_ROOT['band_2'] = TRAIN_ROOT['band_2'].apply(lambda x: np.array(x).reshape(75, 75))
 
+split_point = int(TRAIN_ROOT.shape[0] * 0.9)
+VALIDATION_ROOT = TRAIN_ROOT[split_point:]
+TRAIN_ROOT = TRAIN_ROOT[0:split_point]
 
-'''
-CV
-'''
-VALIDATION_ROOT = None
 
 
 '''
@@ -47,19 +46,19 @@ VALIDATION_ROOT = None
 #    test_root['inc_angle'] = pd.to_numeric(test_root['inc_angle'], errors='coerce')
 #    test_root['iso1'] = test_root.iloc[:, 0].apply(iso)
 #    test_root['iso2'] = test_root.iloc[:, 1].apply(iso)
-#    test_root['s1'] = test_root.iloc['iso1'].apply(size)
-#    test_root['s2'] = test_root.iloc['iso2'].apply(size)
+#    test_root['s1'] = test_root['iso1'].apply(size)
+#    test_root['s2'] = test_root['iso2'].apply(size)
 #    test_root['band_1'] = test_root['band_1'].apply(lambda x: np.array(x).reshape(75, 75))
 #    test_root['band_2'] = test_root['band_2'].apply(lambda x: np.array(x).reshape(75, 75))
 
 
-arch = 'modified_resnet18' # preact_resnet50, resnet152
+arch = 'modified_vgg11' # preact_resnet50, resnet152
 pretrained = 'imagenet' #imagenet
 num_classes = 2
 threshold_before_avg =False
 evaluate = False
 checkpoint_filename = arch + '_' + pretrained
-save_freq = 2
+save_freq = 5
 try_resume = False
 print_freq = 10
 if_debug = False
@@ -84,12 +83,12 @@ val_transform = 'val_ship'
 # training parameters:
 BATCH_SIZE = 64
 INPUT_WORKERS = 4
-epochs = 60
+epochs = 50
 use_epoch_decay = True # 可以加每次调lr时load回来最好的checkpoint
-decay_epochs = [20, 40, 50]
-lr = 1e-4  #0.01  0.001
-lr_min = 1e-1
-lr_decay = 0.5
+decay_epochs = [10, 20, 30, 40]
+lr = 1e-3  #0.01  0.001
+lr_min = 1e-6
+lr_decay = 0.2
 
 if_fc = False #是否先训练最后新加的层，目前的实现不对。
 lr1 = lr_min #if_fc = True, 里面的层先不动
@@ -98,7 +97,7 @@ lr2_min = 0.019#0.0019 #lr2每次除以10降到lr2_min，然后lr2 = lr, lr1 = l
 slow = 1 #if_fc = True, lr1比lr2慢的倍数
 print('lr=%.8f, lr1=%.8f, lr2=%.8f, lr2_min=%.8f'% (lr,lr1,lr2,lr2_min))
 
-weight_decay = 0.005 #.05 #0.0005 #0.0001  0.05太大。试下0.01?
+weight_decay = 0 #.05 #0.0005 #0.0001  0.05太大。试下0.01?
 optim_type = 'Adam' #Adam SGD http://ruder.io/optimizing-gradient-descent/
 confusions = None#'Entropic' #'Pairwise' 'Entropic'
 confusion_weight = 0#0.1# 0.5  #for pairwise loss is 0.1N to 0.2N (where N is the number of classes), and for entropic is 0.1-0.5. https://github.com/abhimanyudubey/confusion

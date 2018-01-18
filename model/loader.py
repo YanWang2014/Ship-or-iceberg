@@ -39,6 +39,7 @@ from .se_resnet152_places365 import give_se_resnet152_places365
 from .Mask_resnet import Mask_resnet
 from .tripletnet import Tripletnet
 from .modified_resnet import modified_resnet18
+from .modified_vgg import modified_vgg11
 
 support_models = {
     'places': ('alexnet', 'densenet161', 'resnet18', 'resnet50', 'preact_resnet50', 'resnet152'),
@@ -53,6 +54,8 @@ model_file_root = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'pl
 def load_model(arch, pretrained, use_gpu=True, num_classes=None, AdaptiveAvgPool=False, SPP=False, num_levels=3, pool_type='avg_pool', bilinear={'use':False,'dim':16384}, stage=2, SENet=False, se_stage=2, se_layers=None, threshold_before_avg = False, triplet = False):
     if arch == 'modified_resnet18':
         return modified_resnet18(num_classes)
+    if arch == 'modified_vgg11':
+        return modified_vgg11(num_classes)
     
     num_mul = sum([(2**i)**2 for i in range(num_levels)])
     if SPP and AdaptiveAvgPool:

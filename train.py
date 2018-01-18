@@ -298,7 +298,7 @@ def _each_epoch(mode, loader, model, criterion, optimizer=None, epoch=None):
         target_var = torch.autograd.Variable(target, volatile=(mode != 'train'))
 
         # compute output
-        if arch == 'modified_resnet18':
+        if arch.startswith('modified'):
             output = model(input_var.float(), size_var.float())
         else:
             output = model(input_var)
